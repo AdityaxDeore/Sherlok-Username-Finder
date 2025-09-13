@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sherlock Finds - Social Media Username Finder by Aditya</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .search-section {
+            padding: 60px 40px;
+            text-align: center;
+        }
+        
+        .search-box {
+            margin-bottom: 40px;
+        }
+        
+        .search-box input {
+            padding: 20px 30px;
+            font-size: 1.2em;
+            width: 400px;
+            max-width: 100%;
+            border: 3px solid #e0e0e0;
+            border-radius: 50px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .search-box input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .search-btn {
+            padding: 20px 40px;
+            font-size: 1.2em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-left: 20px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading {
+            display: none;
+            margin: 30px 0;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .results {
+            margin-top: 40px;
+            padding: 0 40px;
+            display: none;
+        }
+        
+        .results-header {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 20px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .result-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        
+        .result-card.found {
+            border-left: 5px solid #27ae60;
+        }
+        
+        .result-card.not-found {
+            border-left: 5px solid #e74c3c;
+        }
+        
+        .result-card.error {
+            border-left: 5px solid #f39c12;
+        }
+        
+        .platform-name {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+        
+        .status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+        
+        .status.found {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.not-found {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status.error {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .platform-url {
+            word-break: break-all;
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .platform-url:hover {
+            text-decoration: underline;
+        }
+        
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            background: #f0f0f0;
+            border-radius: 10px;
+            height: 20px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+        
+        .current-search {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .current-search h3 {
+            margin: 0 0 10px 0;
+            color: #1976d2;
+        }
+        
+        .platform-status {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .found-live {
+            background: #c8e6c9;
+            border: 2px solid #4caf50;
+            animation: pulse 0.5s ease-in-out;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+            .search-box input {
+                width: 100%;
+                margin-bottom: 20px;
+            }
+            
+            .search-btn {
+                margin-left: 0;
+                width: 100%;
+            }
+            
+            .stats {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🕵️ Sherlock Finds</h1>
+            <p>Social Media Username Finder by Aditya Deore</p>
+        </div>
+        
+        <div class="search-section">
+            <div class="search-box">
+                <input type="text" id="username" placeholder="Enter username to search..." maxlength="50">
+                <button class="search-btn" onclick="searchUsername()" id="searchBtn">
+                    🔍 Search
+                </button>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Searching across 80+ platforms...</p>
+            </div>
+            
+            <div class="current-search" id="currentSearch">
+                <h3>🔍 Currently Searching</h3>
+                <div class="platform-status" id="currentPlatform">Initializing...</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div id="progressText">0% complete (0/0)</div>
+            </div>
+            
+            <div class="error-message" id="errorMessage" style="display: none;"></div>
+        </div>
+        
+        <div class="results" id="results">
+            <div class="results-header">
+                <h2>Search Results for: <span id="searchedUsername"></span></h2>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-number" id="foundCount">0</div>
+                        <div class="stat-label">Found</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number" id="totalCount">0</div>
+                        <div class="stat-label">Total Platforms</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="results-grid" id="resultsGrid"></div>
+        </div>
+        
+        <div class="footer">
+            <p>&copy; 2025 Sherlock Finds - Created by Aditya Deore</p>
+            <p>Open source tool for social media username discovery</p>
+        </div>
+    </div>
+
+    <script>
+        // Allow Enter key to trigger search
+        document.getElementById('username').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchUsername();
+            }
+        });
+
+        let eventSource = null;
+        let foundResults = [];
+        let totalPlatforms = 0;
+        let foundCount = 0;
+
+        function searchUsername() {
+            const username = document.getElementById('username').value.trim();
+            const searchBtn = document.getElementById('searchBtn');
+            const loading = document.getElementById('loading');
+            const currentSearch = document.getElementById('currentSearch');
+            const results = document.getElementById('results');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            // Validation
+            if (!username) {
+                showError('Please enter a username');
+                return;
+            }
+            
+            if (username.length < 2) {
+                showError('Username must be at least 2 characters');
+                return;
+            }
+            
+            // Close existing EventSource if any
+            if (eventSource) {
+                eventSource.close();
+            }
+            
+            // Reset UI
+            errorMessage.style.display = 'none';
+            results.style.display = 'none';
+            loading.style.display = 'none';
+            currentSearch.style.display = 'block';
+            searchBtn.disabled = true;
+            searchBtn.textContent = 'Searching...';
+            
+            // Reset data
+            foundResults = [];
+            foundCount = 0;
+            totalPlatforms = 0;
+            
+            // Clear previous results
+            document.getElementById('resultsGrid').innerHTML = '';
+            
+            // Start streaming search
+            eventSource = new EventSource(`/search-stream/${encodeURIComponent(username)}`);
+            
+            eventSource.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleStreamEvent(data);
+                } catch (error) {
+                    console.error('Error parsing stream data:', error);
+                }
+            };
+            
+            eventSource.onerror = function(error) {
+                console.error('EventSource failed:', error);
+                showError('Connection error. Please try again.');
+                resetUI();
+            };
+        }
+        
+        function handleStreamEvent(data) {
+            switch (data.type) {
+                case 'start':
+                    totalPlatforms = data.total_platforms;
+                    document.getElementById('currentPlatform').textContent = `Starting search across ${totalPlatforms} platforms...`;
+                    document.getElementById('progressText').textContent = `0% complete (0/${totalPlatforms})`;
+                    break;
+                    
+                case 'progress':
+                    const percentage = data.percentage;
+                    document.getElementById('currentPlatform').textContent = `🔍 Checking ${data.current_platform}...`;
+                    document.getElementById('progressFill').style.width = `${percentage}%`;
+                    document.getElementById('progressText').textContent = `${percentage}% complete (${data.processed}/${data.total})`;
+                    break;
+                    
+                case 'result':
+                    addResultCard(data);
+                    if (data.status === 'found') {
+                        foundCount++;
+                    }
+                    break;
+                    
+                case 'complete':
+                    completeSearch(data);
+                    break;
+                    
+                case 'error':
+                    showError(data.message || 'An error occurred during search');
+                    resetUI();
+                    break;
+            }
+        }
+        
+        function addResultCard(result) {
+            const resultsGrid = document.getElementById('resultsGrid');
+            const results = document.getElementById('results');
+            
+            // Show results section if not already visible
+            if (results.style.display === 'none') {
+                results.style.display = 'block';
+                // Update header with current info
+                document.getElementById('searchedUsername').textContent = document.getElementById('username').value;
+                document.getElementById('totalCount').textContent = totalPlatforms;
+            }
+            
+            // Create result card
+            const card = document.createElement('div');
+            card.className = `result-card ${result.status}`;
+            
+            const statusIcon = result.status === 'found' ? '✅' : 
+                             result.status === 'not_found' ? '❌' : 
+                             result.status === 'not_allowed' ? '🚫' : '⚠️';
+            
+            const statusText = result.status === 'found' ? 'Found' : 
+                             result.status === 'not_found' ? 'Not Found' : 
+                             result.status === 'not_allowed' ? 'Not Allowed' : 'Error';
+            
+            card.innerHTML = `
+                <div class="platform-name">${statusIcon} ${result.platform}</div>
+                <div class="status ${result.status}">${statusText}</div>
+                ${result.url && result.status === 'found' ? 
+                    `<a href="${result.url}" target="_blank" class="platform-url">${result.url}</a>` : 
+                    `<div style="color: #666; font-size: 0.9em;">${result.message}</div>`
+                }
+            `;
+            
+            // Add special animation for found results
+            if (result.status === 'found') {
+                card.classList.add('found-live');
+                // Update found count in real-time
+                document.getElementById('foundCount').textContent = foundCount;
+            }
+            
+            // Insert at top for found results, at bottom for others
+            if (result.status === 'found') {
+                resultsGrid.insertBefore(card, resultsGrid.firstChild);
+            } else {
+                resultsGrid.appendChild(card);
+            }
+            
+            // Scroll new found results into view
+            if (result.status === 'found') {
+                card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+        
+        function completeSearch(data) {
+            // Update final stats
+            document.getElementById('foundCount').textContent = data.found_count;
+            document.getElementById('totalCount').textContent = data.total_platforms;
+            
+            // Update progress to complete
+            document.getElementById('progressFill').style.width = '100%';
+            document.getElementById('currentPlatform').textContent = `✅ Search completed! Found ${data.found_count} profiles.`;
+            document.getElementById('progressText').textContent = `100% complete (${data.total_platforms}/${data.total_platforms})`;
+            
+            // Hide current search after a delay
+            setTimeout(() => {
+                document.getElementById('currentSearch').style.display = 'none';
+            }, 3000);
+            
+            resetUI();
+        }
+        
+        function resetUI() {
+            const searchBtn = document.getElementById('searchBtn');
+            searchBtn.disabled = false;
+            searchBtn.textContent = '🔍 Search';
+            
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+            }
+        }
+        
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            document.getElementById('currentSearch').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
